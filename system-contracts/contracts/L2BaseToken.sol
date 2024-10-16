@@ -11,7 +11,7 @@ import {Unauthorized, InsufficientFunds} from "./SystemContractErrors.sol";
 /**
  * @author Matter Labs
  * @custom:security-contact security@matterlabs.dev
- * @notice Native ETH contract.
+ * @notice Native BTC contract.
  * @dev It does NOT provide interfaces for personal interaction with tokens like `transfer`, `approve`, and `transferFrom`.
  * Instead, this contract is used by the bootloader and `MsgValueSimulator`/`ContractDeployer` system contracts
  * to perform the balance changes while simulating the `msg.value` Ethereum behavior.
@@ -24,9 +24,9 @@ contract L2BaseToken is IBaseToken, SystemContractBase {
     uint256 public override totalSupply;
 
     /// @notice Transfer tokens from one address to another.
-    /// @param _from The address to transfer the ETH from.
-    /// @param _to The address to transfer the ETH to.
-    /// @param _amount The amount of ETH in wei being transferred.
+    /// @param _from The address to transfer the BTC from.
+    /// @param _to The address to transfer the BTC to.
+    /// @param _amount The amount of BTC in wei being transferred.
     /// @dev This function can be called only by trusted system contracts.
     /// @dev This function also emits "Transfer" event, which might be removed
     /// later on.
@@ -53,7 +53,7 @@ contract L2BaseToken is IBaseToken, SystemContractBase {
         emit Transfer(_from, _to, _amount);
     }
 
-    /// @notice Returns ETH balance of an account
+    /// @notice Returns BTC balance of an account
     /// @dev It takes `uint256` as an argument to be able to properly simulate the behaviour of the
     /// Ethereum's `BALANCE` opcode that accepts uint256 as an argument and truncates any upper bits
     /// @param _account The address of the account to return the balance of.
@@ -64,7 +64,7 @@ contract L2BaseToken is IBaseToken, SystemContractBase {
     /// @notice Increase the total supply of tokens and balance of the receiver.
     /// @dev This method is only callable by the bootloader.
     /// @param _account The address which to mint the funds to.
-    /// @param _amount The amount of ETH in wei to be minted.
+    /// @param _amount The amount of BTC in wei to be minted.
     function mint(address _account, uint256 _amount) external override onlyCallFromBootloader {
         totalSupply += _amount;
         balance[_account] += _amount;
@@ -131,18 +131,18 @@ contract L2BaseToken is IBaseToken, SystemContractBase {
     /// @dev This method has not been stabilized and might be
     /// removed later on.
     function name() external pure override returns (string memory) {
-        return "Ether";
+        return "Bitcoin";
     }
 
     /// @dev This method has not been stabilized and might be
     /// removed later on.
     function symbol() external pure override returns (string memory) {
-        return "ETH";
+        return "BTC";
     }
 
     /// @dev This method has not been stabilized and might be
     /// removed later on.
     function decimals() external pure override returns (uint8) {
-        return 18;
+        return 8;
     }
 }
