@@ -143,6 +143,6 @@ contract L2BaseToken is IBaseToken, SystemContractBase {
     /// @dev This method has not been stabilized and might be
     /// removed later on.
     function decimals() external pure override returns (uint8) {
-        return 8;
+        return 18;
     }
 }
