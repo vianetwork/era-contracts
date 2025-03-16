@@ -137,7 +137,6 @@ export async function publishFactoryDeps(
   }
 
   const bytecodes = getBytecodes(dependencies);
-  const combinedLength = totalBytesLength(bytecodes);
 
   console.log(
     `\nPublishing dependencies for contracts ${dependencies
@@ -148,28 +147,30 @@ export async function publishFactoryDeps(
   );
 
   for (let i = 0; i < dependencies.length; i++) {
-    const txHandle = await deployer.deploy({
-      contractName: dependencies[i].name,
-      sourceName: "",
-      factoryDeps: {},
-      _format: 'hh-zksolc-artifact-1',
-      abi: [],
-      bytecode: ethers.utils.hexlify(bytecodes[i]),
-      deployedBytecode: ethers.utils.hexlify(bytecodes[i]),
-      linkReferences: {},
-      deployedLinkReferences: {},
-      sourceMapping: "",
-    }, [], {
-      gasLimit: 10000000,
-      maxFeePerGas: 2000000000
-    })
-    console.log(`Transaction hash: ${txHandle.hash}`);
+    const txHandle = await deployer.deploy(
+      {
+        contractName: dependencies[i].name,
+        sourceName: "",
+        factoryDeps: {},
+        _format: "hh-zksolc-artifact-1",
+        abi: [],
+        bytecode: ethers.utils.hexlify(bytecodes[i]),
+        deployedBytecode: ethers.utils.hexlify(bytecodes[i]),
+        linkReferences: {},
+        deployedLinkReferences: {},
+        sourceMapping: "",
+      },
+      [],
+      {
+        gasLimit: 10000000,
+      }
+    );
 
-    console.log("Waiting for transaction commit on L1");
+    console.log("Waiting for transaction on L2");
 
-    await txHandle.deployed()
+    await txHandle.deployed();
 
-    await checkMarkers([bytecodes[i]], deployer)
+    await checkMarkers([bytecodes[i]], deployer);
   }
 }
 
