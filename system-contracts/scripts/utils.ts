@@ -128,11 +128,7 @@ export function getBytecodes(dependencies: Dependency[]): BytesLike[] {
   return dependencies.map((dep) => dep.bytecodes).flat();
 }
 
-export async function publishFactoryDeps(
-  dependencies: Dependency[],
-  deployer: Deployer,
-
-) {
+export async function publishFactoryDeps(dependencies: Dependency[], deployer: Deployer) {
   if (dependencies.length === 0) {
     throw new Error("The dependencies must be non-empty");
   }
