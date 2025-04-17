@@ -127,18 +127,12 @@ export function getBytecodes(dependencies: Dependency[]): BytesLike[] {
   return dependencies.map((dep) => dep.bytecodes).flat();
 }
 
-export async function publishFactoryDeps(
-  dependencies: Dependency[],
-  deployer: Deployer,
-  nonce: number,
-  gasPrice: BigNumber
-) {
+export async function publishFactoryDeps(dependencies: Dependency[], deployer: Deployer) {
   if (dependencies.length === 0) {
     throw new Error("The dependencies must be non-empty");
   }
 
   const bytecodes = getBytecodes(dependencies);
-  const combinedLength = totalBytesLength(bytecodes);
 
   console.log(
     `\nPublishing dependencies for contracts ${dependencies
@@ -147,27 +141,33 @@ export async function publishFactoryDeps(
       })
       .join(", ")}`
   );
-  console.log(`Combined length ${combinedLength}`);
 
-  const txHandle = await deployer.zkWallet.requestExecute({
-    contractAddress: ethers.constants.AddressZero,
-    calldata: "0x",
-    l2GasLimit: DEFAULT_L2_TX_GAS_LIMIT,
-    factoryDeps: bytecodes,
-    overrides: {
-      nonce,
-      gasPrice,
-      gasLimit: 3000000,
-    },
-  });
+  for (let i = 0; i < dependencies.length; i++) {
+    const txHandle = await deployer.deploy(
+      {
+        contractName: dependencies[i].name,
+        sourceName: "",
+        factoryDeps: {},
+        _format: "hh-zksolc-artifact-1",
+        abi: [],
+        bytecode: ethers.utils.hexlify(bytecodes[i]),
+        deployedBytecode: ethers.utils.hexlify(bytecodes[i]),
+        linkReferences: {},
+        deployedLinkReferences: {},
+        sourceMapping: "",
+      },
+      [],
+      {
+        gasLimit: 10000000,
+      }
+    );
 
-  console.log(`Transaction hash: ${txHandle.hash}`);
+    console.log("Waiting for transaction on L2");
 
-  console.log("Waiting for transaction commit on L1");
+    await txHandle.deployed();
 
-  await txHandle.waitL1Commit(2);
-
-  return txHandle;
+    await checkMarkers([bytecodes[i]], deployer);
+  }
 }
 
 // Returns an array of bytecodes that should be published along with their total length in bytes
