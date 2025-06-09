@@ -23,5 +23,5 @@ interface IBaseToken {
 
     event Transfer(address indexed from, address indexed to, uint256 value);
 
-    event Withdrawal(address indexed _l2Sender, bytes indexed _l1Receiver, uint256 _amount);
+    event Withdrawal(address indexed _l2Sender, bytes _l1Receiver, uint256 _amount);
 }
