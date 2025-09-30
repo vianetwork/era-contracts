@@ -42,7 +42,7 @@ const findFilesEndingWith = (path: string, endingWith: string): string[] => {
   }
 };
 
-const SOLIDITY_ARTIFACTS_DIR = "zkout";
+const SOLIDITY_ARTIFACTS_DIR = "artifacts-zk/contracts-preprocessed";
 
 const getSolidityContractDetails = (dir: string, contractName: string): ContractDetails => {
   const bytecodePath = join(SOLIDITY_ARTIFACTS_DIR, contractName + ".sol", contractName + ".json");
@@ -100,7 +100,7 @@ const readBytecode = (details: ContractDetails): string => {
   try {
     if (details.bytecodePath.endsWith(".json")) {
       const jsonFile = fs.readFileSync(absolutePath, "utf8");
-      return ethers.utils.hexlify("0x" + JSON.parse(jsonFile).bytecode.object);
+      return ethers.utils.hexlify(JSON.parse(jsonFile).bytecode);
     } else {
       return ethers.utils.hexlify(fs.readFileSync(absolutePath));
     }
