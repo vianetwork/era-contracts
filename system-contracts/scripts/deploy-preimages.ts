@@ -298,15 +298,9 @@ async function main() {
     .option("--system-contracts")
     .option("--file <file>")
     .action(async (cmd) => {
-      const l1Rpc = cmd.l1Rpc ? cmd.l1Rpc : l1RpcUrl();
       const l2Rpc = cmd.l2Rpc ? cmd.l2Rpc : l2RpcUrl();
-      const providerL1 = new ethers.providers.JsonRpcProvider(l1Rpc);
       const providerL2 = new Provider(l2Rpc);
-      const wallet = cmd.privateKey
-        ? new Wallet(cmd.privateKey)
-        : Wallet.fromMnemonic(process.env.MNEMONIC ? process.env.MNEMONIC : ethTestConfig.mnemonic, "m/44'/60'/0'/0/1");
-      wallet.connect(providerL2);
-      wallet.connectToL1(providerL1);
+      const wallet = new Wallet(cmd.privateKey, providerL2)
 
       // TODO(EVM-392): refactor to avoid `any` here.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
