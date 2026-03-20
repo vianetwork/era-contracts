@@ -1,4 +1,4 @@
-# WBTC Deployment Handoff (Via Testnet) — For Friend
+# WBTC Deployment Handoff (Via Testnet)
 
 Goal: deploy canonical `L2WrappedBaseToken` (proxy) so DEX integration can continue.
 
