@@ -5,13 +5,13 @@ Goal: deploy canonical `L2WrappedBaseToken` (proxy) so DEX integration can conti
 ## Repo / Branch
 - Repo: `cryptocake/era-contracts`
 - Branch: `feat/via-uniswap-v2-deployments`
-- Folder: `l2-contracts`
+- Working folder: `l2-contracts`
 
-## Mode to use now
-Use **DEX-ready mode**:
+## Deployment mode
+Use **DEX-ready mode** now:
 - Deploy `L2WrappedBaseToken` implementation + proxy
 - Initialize as `Wrapped BTC` / `WBTC`
-- We only need ERC20 + deposit/withdraw for DEX now
+- Ensure ERC20 + deposit/withdraw work
 
 ## 1) Environment
 Create `l2-contracts/.env`:
@@ -28,34 +28,70 @@ From `era-contracts/l2-contracts`:
 npx hardhat compile
 ```
 
-## 3) Deploy contracts
-1. Deploy `L2WrappedBaseToken` -> save as `WBTC_IMPL`
-2. Deploy `TransparentUpgradeableProxy` with:
-   - implementation: `WBTC_IMPL`
-   - admin: deployer (or multisig)
-   - init data: `0x`
-   Save proxy as `WBTC_PROXY`
+## 3) Deploy implementation + proxy
+Start console:
+
+```bash
+npx hardhat console --network viaTestnet
+```
+
+Deploy impl:
+
+```js
+const [deployer] = await ethers.getSigners()
+const Impl = await ethers.getContractFactory("L2WrappedBaseToken", deployer)
+const impl = await Impl.deploy()
+await impl.deployed()
+console.log("WBTC_IMPL:", impl.address)
+```
+
+Deploy proxy:
+
+```js
+const Proxy = await ethers.getContractFactory(
+  "@openzeppelin/contracts-v4/proxy/transparent/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy",
+  deployer
+)
+const proxy = await Proxy.deploy(impl.address, deployer.address, "0x")
+await proxy.deployed()
+console.log("WBTC_PROXY:", proxy.address)
+```
 
 ## 4) Initialize proxy as WBTC
-Call on `WBTC_PROXY` (with `L2WrappedBaseToken` ABI):
 
-```solidity
-initializeV2(
+```js
+const wbtc = await ethers.getContractAt("L2WrappedBaseToken", proxy.address, deployer)
+const l2BridgeAddress = "0x0000000000000000000000000000000000000001"
+const l1TokenAddress  = "0x0000000000000000000000000000000000000002"
+
+const tx = await wbtc.initializeV2(
   "Wrapped BTC",
   "WBTC",
-  <l2BridgeAddress_nonzero>,
-  <l1TokenAddress_nonzero>
+  l2BridgeAddress,
+  l1TokenAddress
 )
+await tx.wait()
+console.log("initialize tx:", tx.hash)
 ```
 
 ## 5) Verify
-- `name()` -> `Wrapped BTC`
-- `symbol()` -> `WBTC`
-- `decimals()` -> `18`
-- `deposit()` works
-- `withdraw(uint256)` works
 
-## 6) Return value needed by DEX flow
-- `WBTC_ADDRESS = <WBTC_PROXY>`
+```js
+await wbtc.name()      // Wrapped BTC
+await wbtc.symbol()    // WBTC
+await wbtc.decimals()  // 18
+```
+
+```js
+let d = await wbtc.deposit({ value: 1 })
+await d.wait()
+let w = await wbtc.withdraw(1)
+await w.wait()
+```
+
+## 6) Return values needed
+- `WBTC_PROXY` (this is `WBTC_ADDRESS`)
+- `initializeV2` tx hash
+- metadata check outputs
 
 Then continue with `l2-contracts/src/dex/deployV2.ts`.
