@@ -19,7 +19,7 @@ export default {
     },
   },
   solidity: {
-    version: "0.8.24",
+    compilers: [{ version: "0.5.16" }, { version: "0.6.6" }, { version: "0.8.24" }],
   },
   defaultNetwork: "localhost",
   networks: {
@@ -28,6 +28,16 @@ export default {
       url: "http://127.0.0.1:8011",
       ethNetwork: "localhost",
       zksync: true,
+    },
+    viaTestnet: {
+      // Via testnet (chainId 25223)
+      url: process.env.VIA_TESTNET_RPC_URL || "https://via.testnet.viablockchain.dev",
+      ethNetwork: process.env.VIA_TESTNET_ETH_NETWORK || "sepolia",
+      zksync: true,
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : undefined,
+      verifyURL:
+        process.env.VIA_TESTNET_VERIFY_URL ||
+        "https://testnet.blockscout.onvia.org/api/",
     },
     zkSyncTestnet: {
       url: "https://zksync2-testnet.zksync.dev",
