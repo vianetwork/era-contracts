@@ -3,16 +3,14 @@ import * as hre from "hardhat";
 
 import { Deployer } from "@matterlabs/hardhat-zksync-deploy";
 import { Command } from "commander";
-import { BytesLike } from "ethers";
 import { ethers } from "ethers";
 import * as fs from "fs";
 import * as path from "path";
-import type { types } from "zksync-ethers";
 import { Provider, Wallet } from "zksync-ethers";
 import { hashBytecode } from "zksync-ethers/build/utils";
 import { Language, SYSTEM_CONTRACTS } from "./constants";
 import type { Dependency, DeployedDependency } from "./utils";
-import { checkMarkers, filterPublishedFactoryDeps, publishFactoryDeps, readYulBytecode } from "./utils";
+import { filterPublishedFactoryDeps, publishFactoryDeps, readYulBytecode } from "./utils";
 
 const testConfigPath = path.join(process.env.ZKSYNC_HOME as string, "etc/test_config/constant");
 const ethTestConfig = JSON.parse(fs.readFileSync(`${testConfigPath}/eth.json`, { encoding: "utf-8" }));
@@ -22,58 +20,6 @@ const MAX_COMBINED_LENGTH = 125000;
 
 const DEFAULT_ACCOUNT_CONTRACT_NAME = "DefaultAccount";
 const BOOTLOADER_CONTRACT_NAME = "Bootloader";
-
-const CONSOLE_COLOR_RESET = "\x1b[0m";
-const CONSOLE_COLOR_RED = "\x1b[31m";
-const CONSOLE_COLOR_GREEN = "\x1b[32m";
-
-interface TransactionReport {
-  msg: string;
-  success: boolean;
-}
-
-class PublishReporter {
-  // Promises for pending L1->L2 transactions with submitted bytecode hashes.
-  // Each promise will return either string with error or null denoting success.
-  pendingPromises: Promise<TransactionReport>[] = [];
-
-  async appendPublish(bytecodes: BytesLike[], deployer: Deployer, transaction: types.PriorityOpResponse) {
-    const waitAndDoubleCheck = async () => {
-      // Waiting for the transaction to be processed by the server
-      await transaction.wait();
-
-      // Double checking that indeed the dependencies have been marked as known
-      await checkMarkers(bytecodes, deployer);
-    };
-
-    this.pendingPromises.push(
-      waitAndDoubleCheck()
-        .catch((err) => {
-          return Promise.resolve({
-            msg: `Transaction ${transaction.hash} failed with ${err.message || err}`,
-            success: false,
-          });
-        })
-        .then(() => {
-          return Promise.resolve({
-            msg: `Transaction ${transaction.hash} was successful`,
-            success: true,
-          });
-        })
-    );
-  }
-
-  async report() {
-    const results = await Promise.all(this.pendingPromises);
-    results.forEach((result) => {
-      if (result.success) {
-        console.log(CONSOLE_COLOR_GREEN + result.msg + CONSOLE_COLOR_RESET);
-      } else {
-        console.log(CONSOLE_COLOR_RED + result.msg + CONSOLE_COLOR_RESET);
-      }
-    });
-  }
-}
 
 class ZkSyncDeployer {
   deployer: Deployer;

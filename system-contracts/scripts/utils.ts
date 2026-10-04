@@ -84,10 +84,6 @@ export async function outputSystemContracts(): Promise<ForceDeployment[]> {
   return await Promise.all(upgradeParamsPromises);
 }
 
-// Script that publishes preimages for all the system contracts on ZKsync
-// and outputs the JSON that can be used for performing the necessary upgrade
-const DEFAULT_L2_TX_GAS_LIMIT = 2097152;
-
 // For the given dependencies, returns an array of tuples (bytecodeHash, marker), where
 // for each dependency the bytecodeHash is its versioned hash and marker is whether
 // the hash has been published before.
